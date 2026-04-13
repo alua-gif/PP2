@@ -1,5 +1,8 @@
-host = "localhost"
-user = "postgres"
-password = "фдгф2025"
-db_name = "postgres"
-port = 5432
+def load_config():
+    return {
+        "host": "localhost",
+        "database": "phonebook_db",
+        "user": "postgres",
+        "password": "фдгф2025",
+        "port": 5432
+    }
