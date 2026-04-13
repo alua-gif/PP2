@@ -1,187 +1,226 @@
-import psycopg2
-from config import load_config
-
-
+import csv
+from connect import connect
 def create_table():
-    """Create the phonebook table if it doesn't exist."""
-    command = """
-    CREATE TABLE IF NOT EXISTS phonebook (
-        id SERIAL PRIMARY KEY,
-        username VARCHAR(50) UNIQUE NOT NULL,
-        phone VARCHAR(20) NOT NULL
-    );
-    """
+    conn = connect()
+    cur = conn.cursor()
 
-    conn = None
-    try:
-        config = load_config()
-        conn = psycopg2.connect(**config)
-        cur = conn.cursor()
-        cur.execute(command)
-        conn.commit()
-        cur.close()
-        print("Table 'phonebook' is ready.")
-    except (psycopg2.DatabaseError, Exception) as error:
-        print(error)
-    finally:
-        if conn is not None:
-            conn.close()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS phonebook (
+            id SERIAL PRIMARY KEY,
+            first_name VARCHAR(100),
+            phone VARCHAR(20)
+        )
+    """)
 
+    conn.commit()
+    cur.close()
+    conn.close()
+    print("Table created")
 
-def upsert_user():
-    username = input("Enter username: ").strip()
-    phone = input("Enter phone: ").strip()
-    sql = "CALL upsert_u(%s, %s);"
+def insert_console():
+    name = input("Name: ")
+    phone = input("Phone: ")
 
-    config = load_config()
-    try:
-        with psycopg2.connect(**config) as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, (username, phone))
-            conn.commit()
-            print(f"User '{username}' inserted/updated successfully.")
-    except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute(
+        "INSERT INTO phonebook (first_name, phone) VALUES (%s, %s)",
+        (name, phone)
+    )
+
+    conn.commit()
+    cur.close()
+    conn.close()
+    print("Inserted")
 
 
-def insert_many_users():
-    print("Enter list of usernames separated by space:")
-    users = input().split()
+def insert_csv(filename):
+    conn = connect()
+    cur = conn.cursor()
 
-    print("Enter list of phones separated by space:")
-    phones = input().split()
+    with open(filename, "r", encoding="utf-8") as file:
+        reader = csv.reader(file)
+        next(reader, None)
 
-    if len(users) != len(phones):
-        print("Error: number of usernames and phones must match.")
-        return
+        for row in reader:
+            if len(row) >= 2:
+                cur.execute(
+                    "INSERT INTO phonebook (first_name, phone) VALUES (%s, %s)",
+                    (row[0], row[1])
+                )
 
-    config = load_config()
-    try:
-        with psycopg2.connect(**config) as conn:
-            conn.notices.clear()
-            with conn.cursor() as cur:
-                cur.execute("CALL loophz(%s, %s);", (users, phones))
-            conn.commit()
-
-            if conn.notices:
-                print("Incorrect data found:")
-                for notice in conn.notices:
-                    print(notice.strip())
-            else:
-                print("All users inserted successfully.")
-    except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+    conn.commit()
+    cur.close()
+    conn.close()
+    print("CSV inserted")
 
 
-def delete_contact():
-    print("Delete by:")
-    print("1. Username")
-    print("2. Phone")
-    choice = input("Choose: ").strip()
+def update_name(old, new):
+    conn = connect()
+    cur = conn.cursor()
 
-    if choice == "1":
-        value = input("Enter username: ").strip()
-    elif choice == "2":
-        value = input("Enter phone: ").strip()
+    cur.execute(
+        "UPDATE phonebook SET first_name=%s WHERE first_name=%s",
+        (new, old)
+    )
+
+    conn.commit()
+
+    if cur.rowcount == 0:
+        print("No such contact")
     else:
-        print("Invalid choice.")
-        return
+        print("Name updated")
 
-    config = load_config()
-    try:
-        with psycopg2.connect(**config) as conn:
-            with conn.cursor() as cur:
-                cur.execute("CALL del_user(%s);", (value,))
-            conn.commit()
-            print("Contact deleted successfully.")
-    except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+    cur.close()
+    conn.close()
 
 
-def search_records():
-    pattern = input("Enter part of username or phone to search: ").strip()
-    sql = "SELECT * FROM records(%s) ORDER BY out_id;"
+def update_phone(name, new_phone):
+    conn = connect()
+    cur = conn.cursor()
 
-    config = load_config()
-    try:
-        with psycopg2.connect(**config) as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, (pattern,))
-                rows = cur.fetchall()
+    cur.execute(
+        "UPDATE phonebook SET phone=%s WHERE first_name=%s",
+        (new_phone, name)
+    )
 
-                if rows:
-                    print("\nMatching contacts:")
-                    for row in rows:
-                        print(f"ID: {row[0]}, Username: {row[1]}, Phone: {row[2]}")
-                else:
-                    print("No matching contacts found.")
-    except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+    conn.commit()
 
+    if cur.rowcount == 0:
+        print("No such contact")
+    else:
+        print("Phone updated")
 
-def paginated_data():
-    try:
-        lim = int(input("Enter LIMIT: ").strip())
-        offs = int(input("Enter OFFSET: ").strip())
-    except ValueError:
-        print("Limit and offset must be integers.")
-        return
-
-    sql = "SELECT * FROM pagination(%s, %s) ORDER BY out_id;"
-
-    config = load_config()
-    try:
-        with psycopg2.connect(**config) as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, (lim, offs))
-                rows = cur.fetchall()
-
-                if rows:
-                    print("\nPaginated contacts:")
-                    for row in rows:
-                        print(f"ID: {row[0]}, Username: {row[1]}, Phone: {row[2]}")
-                else:
-                    print("No data found.")
-    except (Exception, psycopg2.DatabaseError) as error:
-        print(error)
+    cur.close()
+    conn.close()
 
 
-def main():
+def show_all():
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM phonebook")
+    rows = cur.fetchall()
+
+    for row in rows:
+        print(row)
+
+    cur.close()
+    conn.close()
+
+
+def find_by_name(name):
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM phonebook WHERE first_name=%s", (name,))
+    rows = cur.fetchall()
+    print(rows)
+
+    cur.close()
+    conn.close()
+
+
+def find_by_prefix(prefix):
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT * FROM phonebook WHERE phone LIKE %s",
+        (prefix + "%",)
+    )
+
+    rows = cur.fetchall()
+    print(rows)
+
+    cur.close()
+    conn.close()
+
+
+def delete_by_name(name):
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM phonebook WHERE first_name=%s", (name,))
+    conn.commit()
+
+    if cur.rowcount == 0:
+        print("No such contact")
+    else:
+        print("Deleted by name")
+
+    cur.close()
+    conn.close()
+
+
+def delete_by_phone(phone):
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM phonebook WHERE phone=%s", (phone,))
+    conn.commit()
+
+    if cur.rowcount == 0:
+        print("No such contact")
+    else:
+        print("Deleted by phone")
+
+    cur.close()
+    conn.close()
+
+
+def menu():
     while True:
         print("\n--- PHONEBOOK MENU ---")
         print("1. Create table")
-        print("2. Insert or update one user")
-        print("3. Insert many users")
-        print("4. Delete contact")
-        print("5. Search matching records")
-        print("6. Show paginated data")
-        print("7. Exit")
+        print("2. Insert from console")
+        print("3. Insert from CSV")
+        print("4. Update name")
+        print("5. Update phone")
+        print("6. Show all")
+        print("7. Find by name")
+        print("8. Find by phone prefix")
+        print("9. Delete by name")
+        print("10. Delete by phone")
+        print("0. Exit")
 
-        try:
-            choice = int(input("Choose an option: ").strip())
-        except ValueError:
-            print("Please enter a number.")
-            continue
+        choice = input("Choose: ")
 
-        if choice == 1:
+        if choice == "1":
             create_table()
-        elif choice == 2:
-            upsert_user()
-        elif choice == 3:
-            insert_many_users()
-        elif choice == 4:
-            delete_contact()
-        elif choice == 5:
-            search_records()
-        elif choice == 6:
-            paginated_data()
-        elif choice == 7:
-            print("Bye.")
+        elif choice == "2":
+            insert_console()
+        elif choice == "3":
+            filename = input("CSV filename: ")
+            insert_csv(filename)
+        elif choice == "4":
+            old = input("Old name: ")
+            new = input("New name: ")
+            update_name(old, new)
+        elif choice == "5":
+            name = input("Name: ")
+            new_phone = input("New phone: ")
+            update_phone(name, new_phone)
+        elif choice == "6":
+            show_all()
+        elif choice == "7":
+            name = input("Name: ")
+            find_by_name(name)
+        elif choice == "8":
+            prefix = input("Prefix: ")
+            find_by_prefix(prefix)
+        elif choice == "9":
+            name = input("Name: ")
+            delete_by_name(name)
+        elif choice == "10":
+            phone = input("Phone: ")
+            delete_by_phone(phone)
+        elif choice == "0":
+            print("Bye")
             break
         else:
-            print("Invalid option. Try again.")
+            print("Invalid choice")
 
 
 if __name__ == "__main__":
-    main()
-    
+    menu()
