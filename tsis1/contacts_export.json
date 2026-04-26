@@ -1,0 +1,142 @@
+[
+  {
+    "id": 6,
+    "first_name": "Albert",
+    "last_name": "Einstein",
+    "email": "albert@relativity.org",
+    "birthday": "1879-03-14",
+    "group_name": "Work",
+    "phones": [
+      {
+        "phone": "+7-702-314-1592",
+        "type": "work"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "first_name": "Angelina",
+    "last_name": "Jolie",
+    "email": "angelina@hollywood.com",
+    "birthday": "1975-06-04",
+    "group_name": "Family",
+    "phones": [
+      {
+        "phone": "+7-707-777-5544",
+        "type": "home"
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "first_name": "Billie",
+    "last_name": "Eilish",
+    "email": "billie@music.com",
+    "birthday": "2001-12-18",
+    "group_name": "Friend",
+    "phones": [
+      {
+        "phone": "+7-705-555-4433",
+        "type": "mobile"
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "first_name": "Cristiano",
+    "last_name": "Ronaldo",
+    "email": "cr7@football.pt",
+    "birthday": "1985-02-05",
+    "group_name": "Work",
+    "phones": [
+      {
+        "phone": "+7-707-007-0707",
+        "type": "work"
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "first_name": "Dwayne",
+    "last_name": "Johnson",
+    "email": "the.rock@fitness.com",
+    "birthday": "1972-05-02",
+    "group_name": "Family",
+    "phones": [
+      {
+        "phone": "+7-702-888-9900",
+        "type": "home"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "first_name": "Elon",
+    "last_name": "Musk",
+    "email": "elon@spacex.com",
+    "birthday": "1971-06-28",
+    "group_name": "Work",
+    "phones": [
+      {
+        "phone": "+7-705-999-8877",
+        "type": "work"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "first_name": "Keanu",
+    "last_name": "Reeves",
+    "email": "neo@matrix.io",
+    "birthday": "1964-09-02",
+    "group_name": "Other",
+    "phones": [
+      {
+        "phone": "+7-701-000-1111",
+        "type": "mobile"
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "first_name": "Lana",
+    "last_name": "Del Rey",
+    "email": "lana@summertime.com",
+    "birthday": "1985-06-21",
+    "group_name": "Friend",
+    "phones": [
+      {
+        "phone": "+7-701-222-3344",
+        "type": "mobile"
+      }
+    ]
+  },
+  {
+    "id": 1,
+    "first_name": "Robert",
+    "last_name": "Downey",
+    "email": "tony.stark@avengers.com",
+    "birthday": "1965-04-04",
+    "group_name": "Work",
+    "phones": [
+      {
+        "phone": "+7-701-300-0000",
+        "type": "work"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "first_name": "Scarlett",
+    "last_name": "Johansson",
+    "email": "black.widow@shield.gov",
+    "birthday": "1984-11-22",
+    "group_name": "Friend",
+    "phones": [
+      {
+        "phone": "+7-702-111-2233",
+        "type": "mobile"
+      }
+    ]
+  }
+]
